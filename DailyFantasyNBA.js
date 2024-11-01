@@ -1,4 +1,3 @@
-import { all } from 'axios';
 import puppeteer from 'puppeteer';
 
 async function scrapePlayerIds(url) {
@@ -7,17 +6,8 @@ async function scrapePlayerIds(url) {
     const page = await browser.newPage();
 
     // Go to yahoo!sports NBA TEAM ROSTER page 
-    await page.goto(url);
+    await page.goto('https://sports.yahoo.com/nba/players/5658/');
     console.log('Page Loaded'); 
-
-    // Wait for the roster table to load 
-   /*********  try {
-        await page.waitForSelector('table.W');
-        console.log('Table Loaded');
-    } catch (error) {
-        console.error('Table did not load within timeout', error);
-    }
-    **********/
 
     // Extract the player id's from the page
     const player_id_num = await page.evaluate(() => {
@@ -28,10 +18,10 @@ async function scrapePlayerIds(url) {
         return href_holder;
     });
 
-    return player_id_num;
-
     //Close the browser
     await browser.close();
+
+    return player_id_num;
 }
    
 async function scrapeNBAStats() {
@@ -83,14 +73,10 @@ async function scrapeNBAStats() {
     await browser.close();
 }
 
-
-(async () => {
-    /****  First we need to get the individual player IDs so we can parse through each rostered player's url 
+/****  First we need to get the individual player IDs so we can parse through each rostered player's url 
         Ex url: https://sports.yahoo.com/nba/teams/atlanta/roster/
-        Replace 'atlanta' with each team
-        collect each player's id (located in 'table tbody tr)
-    ****/
-
+        Replace 'atlanta' with each team      *****/
+const global_player_ids = await (async () => {
     // create a table with all the city names of each NBA team 
     const teams = ['atlanta', 'boston', 'brooklyn', 'charlotte', 'chicago', 'cleveland', 'detroit', 
         'indiana', 'miami', 'milwaukee', 'new-york', 'orlando', 'philadelphia', 'toronto', 'washington',
@@ -122,8 +108,26 @@ async function scrapeNBAStats() {
 
     console.log("All Player IDs: ", all_Player_Ids);
     console.log(`There were: ${all_Player_Ids.length} ID numbers found`);
+
+    return all_Player_Ids;
 })();       // Immediately Invoked Function Expression 
 
+/* Get data from every single player. First access the player id and insert it in the url.
+Go through each url respectively and store data store player data  */ 
+const global_player_stats = await (async () => {
+    // Go to yahoo!sports NBA individual player page 
+    const place_holder_url = 'https://sports.yahoo.com/nba/players/place_holder/';     // (this url does NOT work)
 
+    // Parse through each playe's url and store stats
+    // replace 'place_holder' in url with player id number 
+    let player_url = "";
+    global_player_ids.forEach(myFunction);
+    function myFunction(id_num) {
+        player_url = place_holder_url.replace('place_holder', id_num);
+        console.log(id_num);
+        // scrapeNBAStats(player_url).catch(console.error);
+    }
 
-scrapeNBAStats().catch(console.error);
+    // scrapeNBAStats().catch(console.error);
+})();
+
