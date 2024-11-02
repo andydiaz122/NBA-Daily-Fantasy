@@ -42,23 +42,29 @@ const global_player_ids = await (async () => {
     // replace 'place_holder' in url with each city
     let roster_url = "";
     const team_url_list = [];
-    teams.forEach(myFunction);
-    function myFunction(city) {
+    teams.forEach(myFunction1);
+    function myFunction1(city) {
         roster_url = place_holder_url.replace('place_holder', city);
         team_url_list.push(roster_url);   // store all the url's in an array
     }
+    console.log(team_url_list);
 
     let all_Player_Ids = [];
     for (const url of team_url_list) {
         const team_hrefs = await scrapePlayerIds(url);
-        const player_Id = team_hrefs
+        const player_Ids = team_hrefs
                             .filter(url => url.includes('/players'))    // Keep only URLs that contain '/players/'
                             .map(url => url.match(/players\/(\d+)\//)?.[1]) // Extract the player ID numbers
                             .filter(Boolean);               // Remove any `null` or `undefined` values
-        all_Player_Ids = all_Player_Ids.concat(player_Id);
+        all_Player_Ids = all_Player_Ids.concat(player_Ids);
     }
 
-    console.log("All Player IDs: ", all_Player_Ids);
+    all_Player_Ids.forEach(myFunction2);
+    function myFunction2(player_id) {
+        console.log(player_id);
+    }
+
+    // console.log("All Player IDs: ", all_Player_Ids);
     console.log(`There were: ${all_Player_Ids.length} ID numbers found`);
 
     return all_Player_Ids;

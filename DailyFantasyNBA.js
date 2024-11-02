@@ -1,42 +1,19 @@
-import puppeteer from 'puppeteer';
-
-async function scrapePlayerIds(url) {
-    // Launch puppetter browser
-    const browser = await puppeteer.launch({ headless: true, slowMo: 100 });
-    const page = await browser.newPage();
-
-    // Go to yahoo!sports NBA TEAM ROSTER page 
-    await page.goto('https://sports.yahoo.com/nba/players/5658/');
-    console.log('Page Loaded'); 
-
-    // Extract the player id's from the page
-    const player_id_num = await page.evaluate(() => {
-        const rows = document.querySelectorAll('table.W tbody tr td div div a');
-        console.log(rows); 
-        const href_holder = Array.from(document.querySelectorAll('tbody tr td div div a')).map(anchor => anchor.href);    // href contains the player ids
-        console.log(href_holder);
-        return href_holder;
-    });
-
-    //Close the browser
-    await browser.close();
-
-    return player_id_num;
-}
+import puppeteer, { trimCache } from 'puppeteer';
    
-async function scrapeNBAStats() {
+async function scrapeNBAStats(url) {
     // Launch puppetter browser
     const browser = await puppeteer.launch({ headless: true, slowMo: 100 });
     const page = await browser.newPage()
 
     // Go to yahoo!sports NBA player STATS page
-    await page.goto('https://sports.yahoo.com/nba/players/5658/');
-    console.log('Page Loaded');
+    await page.goto(url);
+    // await page.goto('https://sports.yahoo.com/nba/players/5658/');
+    // console.log('Page Loaded');
     
     // Wait for the stats table to load
     try { 
         await page.waitForSelector('table.table.graph-table');
-        console.log('Table Loaded');
+        // console.log('Table Loaded');
     } catch (error) {
         console.error('Table did not load within timeout', error);
     }
@@ -66,51 +43,514 @@ async function scrapeNBAStats() {
         });
     });
 
+     //Close the browser
+     await browser.close();
+
     // Output the extracted player stats to the console
-    console.log(stats.slice(0,4));
-  
-    //Close the browser
-    await browser.close();
+    // console.log(stats.slice(0,4));
+    let trimmed_stats = stats.slice(0,4); 
+    trimmed_stats = trimmed_stats.flat(Infinity);
+    console.log(trimmed_stats);
+
+    // Conduct analysis on the stats:
+    // Save the players that are trending upward in atleast 3 stats from the most recent 4 games played
+    Function ParseStats(trimmed_stats) {
+        
+    }
+
+    return trimmed_stats; 
 }
-
-/****  First we need to get the individual player IDs so we can parse through each rostered player's url 
-        Ex url: https://sports.yahoo.com/nba/teams/atlanta/roster/
-        Replace 'atlanta' with each team      *****/
-const global_player_ids = await (async () => {
-    // create a table with all the city names of each NBA team 
-    const teams = ['atlanta', 'boston', 'brooklyn', 'charlotte', 'chicago', 'cleveland', 'detroit', 
-        'indiana', 'miami', 'milwaukee', 'new-york', 'orlando', 'philadelphia', 'toronto', 'washington',
-        'dallas', 'denver', 'golden-state', 'houston', 'los-angeles', 'memphis', 'minnesota', 'new-orleans',
-        'oklahoma-city', 'phoenix', 'portland', 'sacramento', 'san-antonio', 'utah'];
-
-    // Go to yahoo!sports NBA team ROSTER page 
-    const place_holder_url = 'https://sports.yahoo.com/nba/teams/place_holder/roster/';     // (this url does NOT work)
-
-    // Parse through each team's url and grab each rostered player's id
-    // replace 'place_holder' in url with each city
-    let roster_url = "";
-    const team_url_list = [];
-    teams.forEach(myFunction);
-    function myFunction(city) {
-        roster_url = place_holder_url.replace('place_holder', city);
-        team_url_list.push(roster_url);   // store all the url's in an array
-    }
-
-    let all_Player_Ids = [];
-    for (const url of team_url_list) {
-        const team_hrefs = await scrapePlayerIds(url);
-        const player_Id = team_hrefs
-                            .filter(url => url.includes('/players'))    // Keep only URLs that contain '/players/'
-                            .map(url => url.match(/players\/(\d+)\//)?.[1]) // Extract the player ID numbers
-                            .filter(Boolean);               // Remove any `null` or `undefined` values
-        all_Player_Ids = all_Player_Ids.concat(player_Id);
-    }
-
-    console.log("All Player IDs: ", all_Player_Ids);
-    console.log(`There were: ${all_Player_Ids.length} ID numbers found`);
-
-    return all_Player_Ids;
-})();       // Immediately Invoked Function Expression 
+ 
+// List of Player IDs. Extracted from 'ScrapePlayerID.js' and stored locally for runtime and testing efficiency
+let global_player_id_list = [6791,
+    5338,
+    10105,
+  /*  5336,
+    6698,
+    10069,
+    6166,
+    6562,
+    6429,
+    10073,
+    6259,
+    5487,
+    6398,
+    10296,
+    6713,
+    10053,
+    6016,
+    5155,
+    5602,
+    6743,
+    6619,
+    4622,
+    4245,
+    5903,
+    10206,
+    5464,
+    6418,
+    6581,
+    10277,
+    6570,
+    5765,
+    6427,
+    10075,
+    10321,
+    5842,
+    4913,
+    6219,
+    10121,
+    10396,
+    5693,
+    6173,
+    6563,
+    10134,
+    6741,
+    6065,
+    5187,
+    6571,
+    5600,
+    6569,
+    6604,
+    10111,
+    6552,
+    10077,
+    6395,
+    6023,
+    5245,
+    6733,
+    4631,
+    6410,
+    6276,
+    6560,
+    6224,
+    5363,
+    10104,
+    6803,
+    6434,
+    10295,
+    10323,
+    10120,
+    6705,
+    6210,
+    5764,
+    10265,
+    6043,
+    5893,
+    6580,
+    6555,
+    6548,
+    6234,
+    5324,
+    6731,
+    10083,
+    10126,
+    6402,
+    6651,
+    6708,
+    4897,
+    6169,
+    6396,
+    5835,
+    10066,
+    6167,
+    6212,
+    5651,
+    6452,
+    5826,
+    6514,
+    5681,
+    6397,
+    10145,
+    6267,
+    4884,
+    6579,
+    6746,
+    10279,
+    6256,
+    5650,
+    6512,
+    6703,
+    6766,
+    5194,
+    4901,
+    10263,
+    6695,
+    10316,
+    10331,
+    6716,
+    6450,
+    10114,
+    6408,
+    6799,
+    10096,
+    6749,
+    10324,
+    10305,
+    6404,
+    6564,
+    6776,
+    4621,
+    6696,
+    5582,
+    6721,
+    6406,
+    10318,
+    10113,
+    5658,
+    6400,
+    5471,
+    10103,
+    6356,
+    5827,
+    5855,
+    4893,
+    4912,
+    6566,
+    6175,
+    6155,
+    10092,
+    10311,
+    6717,
+    10312,
+    4391,
+    5500,
+    6073,
+    5476,
+    6652,
+    10274,
+    5185,
+    6714,
+    5501,
+    6755,
+    10082,
+    10300,
+    5012,
+    10088,
+    4472,
+    5073,
+    5482,
+    5643,
+    10227,
+    6734,
+    10262,
+    6048,
+    6782,
+    5480,
+    6412,
+    5836,
+    6021,
+    6044,
+    10297,
+    5843,
+    10317,
+    10314,
+    6578,
+    10303,
+    5474,
+    6047,
+    6600,
+    10129,
+    5432,
+    6407,
+    6691,
+    6206,
+    10095,
+    5159,
+    6018,
+    10275,
+    5330,
+    6722,
+    10106,
+    5768,
+    4911,
+    6628,
+    6500,
+    6516,
+    6550,
+    6036,
+    10335,
+    10125,
+    6636,
+    5015,
+    10310,
+    5294,
+    4725,
+    4469,
+    4906,
+    4152,
+    6275,
+    6444,
+    6413,
+    10276,
+    5475,
+    6750,
+    5647,
+    6704,
+    6515,
+    6165,
+    10391,
+    5894,
+    6053,
+    6625,
+    10325,
+    10101,
+    6222,
+    6551,
+    10330,
+    5164,
+    5640,
+    6417,
+    10333,
+    4682,
+    10278,
+    5959,
+    6718,
+    6411,
+    5667,
+    6582,
+    10273,
+    6632,
+    10099,
+    6700,
+    10272,
+    6471,
+    5497,
+    6557,
+    5840,
+    6216,
+    10294,
+    4886,
+    10078,
+    5349,
+    6014,
+    6586,
+    5316,
+    6226,
+    10223,
+    6567,
+    6727,
+    4840,
+    5892,
+    10097,
+    6499,
+    4894,
+    5356,
+    10116,
+    4892,
+    6174,
+    6679,
+    10385,
+    6711,
+    5295,
+    10329,
+    10286,
+    5352,
+    10393,
+    4497,
+    5638,
+    6414,
+    10074,
+    6025,
+    10112,
+    10067,
+    6720,
+    4390,
+    5862,
+    5323,
+    5341,
+    10332,
+    4612,
+    5069,
+    5637,
+    10080,
+    6549,
+    5490,
+    6057,
+    6556,
+    5739,
+    10115,
+    10308,
+    6745,
+    6772,
+    6687,
+    5292,
+    5163,
+    5858,
+    10328,
+    6707,
+    4247,
+    6513,
+    6034,
+    6614,
+    10389,
+    10288,
+    6693,
+    6463,
+    10108,
+    5727,
+    10118,
+    6806,
+    6558,
+    6572,
+    6422,
+    10147,
+    6209,
+    10287,
+    6617,
+    10070,
+    6015,
+    10415,
+    5825,
+    6255,
+    6709,
+    6164,
+    6757,
+    5317,
+    10327,
+    10340,
+    6737,
+    6205,
+    10086,
+    4246,
+    6028,
+    10281,
+    5886,
+    10387,
+    6355,
+    6594,
+    5197,
+    5393,
+    6420,
+    10050,
+    6735,
+    6626,
+    5318,
+    6253,
+    10280,
+    6613,
+    6593,
+    6801,
+    6269,
+    10098,
+    5601,
+    10220,
+    6577,
+    6742,
+    5161,
+    10289,
+    6559,
+    5660,
+    10338,
+    6574,
+    5880,
+    6163,
+    5754,
+    6701,
+    6254,
+    10343,
+    10244,
+    6022,
+    5856,
+    6692,
+    6441,
+    10284,
+    10411,
+    10304,
+    10301,
+    10107,
+    6597,
+    6702,
+    6724,
+    6076,
+    6032,
+    5009,
+    6232,
+    5473,
+    10309,
+    10292,
+    4244,
+    6751,
+    10313,
+    5484,
+    5733,
+    5864,
+    5327,
+    5905,
+    6031,
+    5192,
+    6719,
+    6401,
+    5958,
+    6588,
+    10065,
+    10285,
+    5350,
+    10048,
+    6730,
+    10061,
+    10234,
+    10119,
+    10164,
+    10064,
+    6697,
+    6035,
+    6208,
+    6747,
+    6038,
+    10293,
+    10320,
+    4614,
+    6753,
+    5767,
+    6030,
+    10087,
+    10341,
+    6453,
+    5156,
+    5472,
+    5322,
+    6133,
+    5824,
+    6694,
+    6802,
+    5642,
+    5013,
+    6595,
+    6710,
+    10290,
+    6754,
+    10051,
+    5823,
+    6624,
+    10336,
+    6217,
+    6433,
+    6596,
+    10367,
+    3930,
+    6699,
+    6403,
+    10094,
+    6715,
+    5357,
+    10282,
+    5832,
+    6109,
+    10315,
+    10100,
+    10110,
+    6762,
+    6712,
+    5769,
+    4660,
+    6058,
+    6655,
+    6575,
+    10122,
+    6019,
+    10127, */
+    10283];
 
 /* Get data from every single player. First access the player id and insert it in the url.
 Go through each url respectively and store data store player data  */ 
@@ -118,16 +558,25 @@ const global_player_stats = await (async () => {
     // Go to yahoo!sports NBA individual player page 
     const place_holder_url = 'https://sports.yahoo.com/nba/players/place_holder/';     // (this url does NOT work)
 
-    // Parse through each playe's url and store stats
+    // Parse through each player's url and store stats
     // replace 'place_holder' in url with player id number 
     let player_url = "";
-    global_player_ids.forEach(myFunction);
+    let stats = [];
+    let dummy_holder = [];
+    global_player_id_list.forEach(myFunction);
     function myFunction(id_num) {
         player_url = place_holder_url.replace('place_holder', id_num);
-        console.log(id_num);
-        // scrapeNBAStats(player_url).catch(console.error);
+        dummy_holder = scrapeNBAStats(player_url);
+        // dummy_holder = scrapeNBAStats(player_url).catch(console.error);
+        stats.concat(dummy_holder);
+        // stats.push(scrapeNBAStats(player_url).catch(console.error));
     }
 
+    // console.log(stats);
     // scrapeNBAStats().catch(console.error);
+
+    return stats;
 })();
 
+// const final_stats  = await global_player_stats;
+// console.log(final_stats);
